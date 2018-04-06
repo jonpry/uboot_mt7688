@@ -73,6 +73,21 @@ void udelay (unsigned long usec)
 		/*NOP*/;
 }
 
+ /* ------------------------------------------------------------------------- */
+
+void ndelay(unsigned long nsec)
+{
+	ulong tmo;
+	ulong start = get_timer(0);
+
+	tmo = (((uint64_t)nsec) * ((mips_cpu_feq/2)) / 1000000000);
+	while ((ulong)((mips_count_get() - start)) < tmo)
+		/*NOP*/;
+}
+
+/* ------------------------------------------------------------------------- */
+
+
 void mdelay(unsigned long msec)
 {
 	while (msec--)

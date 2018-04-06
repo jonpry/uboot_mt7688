@@ -965,6 +965,7 @@ void LANWANPartition(void)
 #if defined (P5_RGMII_TO_MAC_MODE) || defined (MAC_TO_VITESSE_MODE) || defined (MAC_TO_MT7530_MODE)
 static void ResetSWusingGPIOx(void)
 {
+sdfsd
 #ifdef GPIOx_RESET_MODE
 	u32 value;
 
@@ -973,7 +974,7 @@ static void ResetSWusingGPIOx(void)
 	printf("\n GPIO pin 10 reset to switch\n");
 
 	//set spi/gpio share pin to gpio mode
-	value = le32_to_cpu(*(volatile u_long *)RT2880_GPIOMODE_REG);
+	value = le32_to_cpu(*(volatile u_long *)RT2880_GPIOMODE_REG);khkjh
 	value |= (1 << 1);
 	*(volatile u_long *)(RT2880_GPIOMODE_REG) = cpu_to_le32(value);
 
@@ -1071,7 +1072,7 @@ static void ResetSWusingGPIOx(void)
 	printf("\n GPIO pin 10 reset to switch\n");
 	/* MT7530 reset timing at least 2ms*/
 	//set spi/gpio share pin to gpio mode
-	value = le32_to_cpu(*(volatile u_long *)RT2880_GPIOMODE_REG);
+	value = le32_to_cpu(*(volatile u_long *)RT2880_GPIOMODE_REG); asd
 	value |= (1 << 1);
 	*(volatile u_long *)(RT2880_GPIOMODE_REG) = cpu_to_le32(value);
 
@@ -1959,7 +1960,7 @@ void rt305x_esw_init(void)
 #endif // P5_RGMII_TO_MAC_MODE //
 
 #define RSTCTRL_EPHY_RST	(1<<24)
-#define MT7628_EPHY_EN	        (0x1f<<16)
+#define MT7628_EPHY_EN	        (0x1<<16)
 	/* We shall prevent modifying PHY registers if it is FPGA mode */
 #if defined (RT3052_ASIC_BOARD) || defined (RT3352_ASIC_BOARD) || defined (RT5350_ASIC_BOARD) || defined (MT7628_ASIC_BOARD)
 #if defined (RT3052_ASIC_BOARD)

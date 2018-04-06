@@ -32,6 +32,8 @@
 #define OPCODE_SE		0xD8	/* Sector erase */
 #define OPCODE_RES		0xAB	/* Read Electronic Signature */
 #define OPCODE_RDID		0x9F	/* Read JEDEC ID */
+#define OPCODE_ENSO             0xB1
+#define OPCODE_EXSO             0xC1
 
 #define OPCODE_FAST_READ	0x0B		/* Fast Read */
 #define OPCODE_DOR			0x3B	/* Dual Output Read */
@@ -196,7 +198,7 @@ void spic_init(void)
 	// use normal(SPI) mode instead of GPIO mode
 	ra_and(RT2880_GPIOMODE_REG, ~(1 << 1));
 #if defined (RT6855_ASIC_BOARD) || defined (RT6855_FPGA_BOARD)
-	ra_or(RT2880_GPIOMODE_REG, (1 << 11));
+	ra_or(RT2880_GPIOMODE_REG, (1 << 11));kjl
 #endif
 	// reset spi block
 	ra_or(RT2880_RSTCTRL_REG, RSTCTRL_SPI_RESET);
@@ -838,6 +840,33 @@ static inline int raspi_write_enable(void)
 #endif
 }
 
+static inline int raspi_enso(void)
+{
+	u8 code = OPCODE_ENSO;
+
+#ifdef USER_MODE
+	return spic_write(&code, 1, NULL, 0);
+#elif defined COMMAND_MODE
+	return raspi_cmd(code, 0, 0, 0, 0, 0, 0);
+#elif defined BBU_MODE
+	return bbu_spic_trans(code, 0, NULL, 1, 0, 0);
+#endif
+}
+
+static inline int raspi_exso(void)
+{
+	u8 code = OPCODE_EXSO;
+
+#ifdef USER_MODE
+	return spic_write(&code, 1, NULL, 0);
+#elif defined COMMAND_MODE
+	return raspi_cmd(code, 0, 0, 0, 0, 0, 0);
+#elif defined BBU_MODE
+	return bbu_spic_trans(code, 0, NULL, 1, 0, 0);
+#endif
+}
+
+
 static inline int raspi_write_disable(void)
 {
 	u8 code = OPCODE_WRDI;
@@ -1019,8 +1048,20 @@ struct chip_info *chip_prob(void)
 
 unsigned long raspi_init(void)
 {
+        int i;
 	spic_init();
 	spi_chip_info = chip_prob();
+        raspi_enso();
+        char buf[64] = {};
+        raspi_read(buf,0,64);
+        raspi_exso();
+        printf("ESN:\n");
+        for(i=0; i < 64; i++){
+           printf("%2.2X ", ((uint32_t)buf[i])&0xFF);
+           if(i%16==15)
+             printf("\n");
+        }
+
 	return spi_chip_info->sector_size * spi_chip_info->n_sectors;
 }
 

@@ -175,9 +175,23 @@ void serial_setbrg (void)
       defined(RT6855_ASIC_BOARD) || defined(RT6855_FPGA_BOARD) || \
       defined(MT7620_ASIC_BOARD) || defined(MT7620_FPGA_BOARD) || \
       defined(MT7628_ASIC_BOARD) || defined(MT7628_FPGA_BOARD)
-	*(unsigned long *)(RALINK_SYSCTL_BASE + 0x0034) |= cpu_to_le32(1<<19|1<<12);
+	//*(unsigned long *)(RALINK_SYSCTL_BASE + 0x0034) |= cpu_to_le32(1<<19|1<<12);
+	*(unsigned long *)(RALINK_SYSCTL_BASE + 0x0034) |= cpu_to_le32(3<<19|1<<12);
 	/* RST Control change from W1C to W1W0 to reset, update 20080812 */
-	*(unsigned long *)(RALINK_SYSCTL_BASE + 0x0034) &= ~(1<<19|1<<12);
+	//*(unsigned long *)(RALINK_SYSCTL_BASE + 0x0034) &= ~(1<<19|1<<12);
+	*(unsigned long *)(RALINK_SYSCTL_BASE + 0x0034) &= ~(3<<19|1<<12);
+	{
+		u32 reg;
+		
+		reg = ra_inl(RT2880_GPIOMODE_REG);
+		reg &= ~(0x3 << 26);
+		reg &= ~(0x3 << 10);
+		reg &= ~(0x1 << 15);
+
+		//reg |= (0x3 << 2);
+		ra_outl(RT2880_GPIOMODE_REG, reg);
+
+	}  
 
 #if 0
 	u32 reg;
@@ -227,7 +241,7 @@ void serial_setbrg (void)
 	DLM(CFG_RT2880_CONSOLE) = clock_divisor >> 8;
 	LCR(CFG_RT2880_CONSOLE) = LCR_WLS0 | LCR_WLS1;
 }
-#endif // defined(RT6855A_ASIC_BOARD) || defined(RT6855A_FPGA_BOARD) //
+#endif // defined(RT6855A_ASIC_BOARD) || defined(RT6855A_FPGA_BOARD) //#endif // defined(RT6855A_ASIC_BOARD) || defined(RT6855A_FPGA_BOARD) //
 
 /*
  * Initialise the serial port with the given baudrate. The settings

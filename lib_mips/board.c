@@ -58,6 +58,7 @@ static int watchdog_reset();
 #endif
 
 extern int timer_init(void);
+void led_color( void );
 
 extern void  rt2880_eth_halt(struct eth_device* dev);
 
@@ -1920,6 +1921,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
     defined (RT5350_ASIC_BOARD) || defined (RT5350_FPGA_BOARD)  || \
     defined (MT7628_ASIC_BOARD) || defined (MT7628_FPGA_BOARD)
 	rt305x_esw_init();
+
 #elif defined (RT6855_ASIC_BOARD) || defined (RT6855_FPGA_BOARD) || \
       defined (MT7620_ASIC_BOARD) || defined (MT7620_FPGA_BOARD)
 	rt_gsw_init();
@@ -1955,16 +1957,17 @@ void board_init_r (gd_t *id, ulong dest_addr)
 /*web failsafe*/
 	gpio_init();
 	led_off();
+        led_color();
+        led_color();
+
 	printf( "\nif you press the WPS button will automatically enter the Update mode\n");
 	int counter = 0;
 	for(i=0;i<10;i++){
 		udelay(150000);
 		printf( "\n%d",i);
-		if(detect_wps())
-		{
-		led_on();
-		counter++;
-		break;
+                if(detect_wps()) {
+			counter++;
+			break;
 		}
 	}
 	if ( counter ) {
@@ -2877,30 +2880,44 @@ void gpio_init(void)
 	RALINK_REG(RT2880_SYS_CNTL_BASE+0x60)=val;
 	//gpio38 input gpio_ctrl_1 bit5=0
 	val=RALINK_REG(RT2880_REG_PIODIR+0x04);	
-	val&=~1<<6;
+	val|=1<<6;
 	RALINK_REG(RT2880_REG_PIODIR+0x04)=val;	
 }
 void led_on( void )
 {
 	//gpio44 gpio_dclr_1 644 clear bit12
-	RALINK_REG(0xb0000644)=1<<12;
+	RALINK_REG(0xb0000644)=1<<6;
 }
 void led_off( void )
 {
 	//gpio44 gpio_dset_1 634 set bit12
-	RALINK_REG(0xb0000634)=1<<12;
+	RALINK_REG(0xb0000634)=1<<6;
 }
+
+void led_color( void )
+{
+	uint32_t color = 0x800000;
+	int i;
+	int ovhead=150;
+	//Reset
+	RALINK_REG(0xb0000644)=1<<6;
+	ndelay(50*1000);
+
+	for (i=0;i<24;i++)
+	{
+		int b = (color&(1<<(24-1)))?1:0;
+		RALINK_REG(0xb0000634)=1<<6;
+		ndelay((b?1200:500)-ovhead);
+		RALINK_REG(0xb0000644)=1<<6;
+		ndelay((b?1300:2000)-ovhead);
+		color<<=1;
+	}
+	ndelay(50*1000);	
+}
+
 int detect_wps( void )
 {
-	u32 val;
-	val=RALINK_REG(0xb0000624);//624
-	if(val&1<<6){
-		return 0;
-	}
-	else{
-		printf("wps button pressed!\n");
-		return 1;
-	}
+        return 0;
 }
 void gpio_test( void )
 {
@@ -2943,7 +2960,6 @@ void gpio_test( void )
 	//ctrl0,ctrl1
 	RALINK_REG(0xb0000600)=0xffffffff;
 	RALINK_REG(0xb0000604)=0xffffffff;
-	RALINK_REG(0xb0000604)&=~(0x01<<6);
 
 	udelay(600000);
 	for(i=0;i<100;i++){

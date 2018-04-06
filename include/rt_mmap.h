@@ -296,7 +296,7 @@
 #define RALINK_FRAME_ENGINE_BASE        0xB0100000
 #define RALINK_ETH_SW_BASE              0xB0110000
 #define RALINK_USB_DEV_BASE             0x10120000
-#define RALINK_MSDC_BASE                0xB0130000
+#define RALINK_MSDC_BASE                0xB0130000akjdha
 #define RALINK_PCI_BASE                 0xB0140000
 #define RALINK_11N_MAC_BASE             0xB0180000
 #define RALINK_USB_HOST_BASE            0x101C0000
@@ -378,7 +378,7 @@
 #define RALINK_FRAME_ENGINE_BASE        0xB0100000
 #define RALINK_ETH_SW_BASE              0xB0110000
 #define RALINK_USB_DEV_BASE             0x10120000
-#define RALINK_MSDC_BASE                0xB0130000
+#define RALINK_MSDC_BASE                0x10130000
 #define RALINK_PCI_BASE                 0xB0140000
 #define RALINK_11N_MAC_BASE             0xB0180000
 #define RALINK_USB_HOST_BASE            0x101C0000
