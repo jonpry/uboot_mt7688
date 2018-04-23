@@ -2882,7 +2882,12 @@ void gpio_init(void)
 	val=RALINK_REG(RT2880_REG_PIODIR+0x04);	
 	val|=1<<6;
 	RALINK_REG(RT2880_REG_PIODIR+0x04)=val;	
+
+        //Enable the load switch
+        RALINK_REG(RT2880_REG_PIODIR)|=1<<11;
+        RALINK_REG(RT2880_REG_PIODATA)|=1<<11;
 }
+
 void led_on( void )
 {
 	//gpio44 gpio_dclr_1 644 clear bit12
@@ -2931,6 +2936,7 @@ void gpio_test( void )
 	gpio_ctrl1= RALINK_REG(0xb0000604);
 	gpio_dat0 = RALINK_REG(0xb0000620);
 	gpio_dat1 = RALINK_REG(0xb0000624);
+
 	//agpio
 	val=0;
 	val|=0x0f<<17;//ephy p1-p4 selection digital PAD
