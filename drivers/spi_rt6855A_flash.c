@@ -1046,18 +1046,27 @@ struct chip_info *chip_prob(void)
 	return match;
 }
 
+#define OPCODE_RDSEC 0x48
+int raspi_read(char *buf, unsigned int from, int len, int opcode);
+
 unsigned long raspi_init(void)
 {
         int i;
 	spic_init();
 	spi_chip_info = chip_prob();
-        raspi_enso();
-        char buf[64] = {};
-        raspi_read(buf,0,64);
-        raspi_exso();
+        char buf[65] = {};
+        if(strcmp(spi_chip_info->name, "W25Q128BV")==0){
+                printf("Winbond\n");
+       		raspi_read(buf,1<<12,65,OPCODE_RDSEC);
+   	}else{
+	        raspi_enso();
+       		raspi_read(buf+1,0,64,OPCODE_READ);
+        	raspi_exso();
+        }
+
         printf("ESN:\n");
         for(i=0; i < 64; i++){
-           printf("%2.2X ", ((uint32_t)buf[i])&0xFF);
+           printf("%2.2X ", ((uint32_t)buf[i+1])&0xFF);
            if(i%16==15)
              printf("\n");
         }
@@ -1089,7 +1098,7 @@ int raspi_erase(unsigned int offs, int len)
 	return 0;
 }
 
-int raspi_read(char *buf, unsigned int from, int len)
+int raspi_read(char *buf, unsigned int from, int len, int opcode)
 {
 	int rdlen = 0;
 #ifdef USER_MODE
@@ -1111,9 +1120,8 @@ int raspi_read(char *buf, unsigned int from, int len)
 	}
 
 #ifdef USER_MODE
-
 	/* Set up the write data buffer. */
-	cmd[0] = OPCODE_READ;
+	cmd[0] = opcode;
 	if (spi_chip_info->addr4b) {
 		raspi_4byte_mode(1);
 		cmd[1] = from >> 24;
@@ -1151,6 +1159,9 @@ int raspi_read(char *buf, unsigned int from, int len)
 #else
 	code = OPCODE_READ;
 #endif
+    	if(opcode != OPCODE_READ)
+	   code = opcode;
+       
 
 	if (spi_chip_info->addr4b)
 	{
@@ -1404,7 +1415,7 @@ int raspi_erase_write(char *buf, unsigned int offs, int count)
 
 			blockaddr = offs & ~blockmask;
 
-			if (raspi_read(block, blockaddr, blocksize) != blocksize) {
+			if (raspi_read(block, blockaddr, blocksize, OPCODE_READ) != blocksize) {
 				free(block);
 				free(temp);
 				return -2;
@@ -1425,7 +1436,7 @@ int raspi_erase_write(char *buf, unsigned int offs, int count)
 				return -4;
 			}
 #ifdef RALINK_SPI_UPGRADE_CHECK
-			if (raspi_read(temp, blockaddr, blocksize) != blocksize) {
+			if (raspi_read(temp, blockaddr, blocksize, OPCODE_READ) != blocksize) {
 				free(block);
 				free(temp);
 				return -2;
@@ -1473,7 +1484,7 @@ int raspi_erase_write(char *buf, unsigned int offs, int count)
 #ifdef RALINK_SPI_UPGRADE_CHECK
 			for( i=0; i< (aligned_size/blocksize); i++)
 			{
-				if (raspi_read(temp, offs+(i*blocksize), blocksize) != blocksize)
+				if (raspi_read(temp, offs+(i*blocksize), blocksize, OPCODE_READ) != blocksize)
 				{
 					free(temp);
 					return -2;
@@ -1604,7 +1615,7 @@ int ralink_spi_command(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			printf("malloc error\n");
 			return 0;
 		}
-		len = raspi_read(p, addr, len); //reuse len
+		len = raspi_read(p, addr, len, OPCODE_READ); //reuse len
 		printf("read len: %d\n", len);
 		for (i = 0; i < len; i++) {
 			printf("%x ", p[i]);
