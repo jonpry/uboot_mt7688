@@ -1429,6 +1429,13 @@ void board_init_r (gd_t *id, ulong dest_addr)
 		trigger_hw_reset();
 	}
 
+        u32 sysctl = RALINK_REG(RT2880_SYSCFG_REG);
+	if(!(sysctl & (1<<8) )){
+		printf("***************************\n");
+		printf("JTAG/SD mux incorrect\n");
+		printf("***************************\n");
+		trigger_hw_reset();
+        }
 #ifdef DEBUG
 	debug ("Now running in RAM - U-Boot at: %08lx\n", dest_addr);
 #endif
